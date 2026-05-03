@@ -1,25 +1,16 @@
 """End-to-end tracing: generate a JSONL from run-3 and verify schema v1 conformance."""
 
-from pathlib import Path
-
 import pytest
 import torch
 
 from t3 import T3Model
 from t3.tracing import generate_trace, load_trace, builtin_prompts
 
-RUN3 = Path(
-    "/home/garret-sutherland/CVMP/T3_sims/t3v2/t3v3/t3v36/"
-    "checkpoints_v36_run3/best.pt"
-)
-
 
 @pytest.fixture(scope="module")
-def model():
-    if not RUN3.exists():
-        pytest.skip(f"Run-3 checkpoint not present at {RUN3}")
+def model(run3_checkpoint):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    m = T3Model.from_checkpoint(RUN3, map_location=device)
+    m = T3Model.from_checkpoint(run3_checkpoint, map_location=device)
     m.to(device)
     m.eval()
     return m

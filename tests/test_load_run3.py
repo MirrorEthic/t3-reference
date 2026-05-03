@@ -1,23 +1,14 @@
 """End-to-end: load run-3 best.pt, run a forward pass, sanity-check logits."""
 
-from pathlib import Path
-
 import pytest
 import torch
 
 from t3 import T3Model
 
-RUN3 = Path(
-    "/home/garret-sutherland/CVMP/T3_sims/t3v2/t3v3/t3v36/"
-    "checkpoints_v36_run3/best.pt"
-)
-
 
 @pytest.fixture(scope="module")
-def model():
-    if not RUN3.exists():
-        pytest.skip(f"Run-3 checkpoint not present at {RUN3}")
-    m = T3Model.from_checkpoint(RUN3)
+def model(run3_checkpoint):
+    m = T3Model.from_checkpoint(run3_checkpoint)
     m.eval()
     return m
 
