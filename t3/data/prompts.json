@@ -1,0 +1,95 @@
+[
+  {
+    "id": "factual",
+    "category": "diagnostic",
+    "label": "Factual recall",
+    "prompt": "The capital of France is",
+    "blurb": "Single-step retrieval. Should ponder little; low S2 σ once the right token surfaces."
+  },
+  {
+    "id": "arithmetic",
+    "category": "diagnostic",
+    "label": "Arithmetic",
+    "prompt": "Twelve times seven equals",
+    "blurb": "Multi-step computation. Watch S1 ACT iterations climb."
+  },
+  {
+    "id": "code",
+    "category": "diagnostic",
+    "label": "Code completion",
+    "prompt": "def fibonacci(n):\n    if n < 2:",
+    "blurb": "Structured grammar. Sharp halts, low E. Stage 2 calibrates fast."
+  },
+  {
+    "id": "nonsense",
+    "category": "diagnostic",
+    "label": "Nonsense words",
+    "prompt": "Glorpf wibble fnark zibbet",
+    "blurb": "Out-of-distribution. σ should drift toward the ceiling — model has no anchor."
+  },
+  {
+    "id": "multilingual",
+    "category": "diagnostic",
+    "label": "Spanish",
+    "prompt": "El gato negro se sienta en",
+    "blurb": "Multilingual survival probe — TRAJECTORY criteria for v3.7+ Phase gates."
+  },
+
+  {
+    "id": "banana",
+    "category": "fun",
+    "label": "Banana × 5",
+    "prompt": "Banana banana banana banana banana",
+    "blurb": "Repetition collapse. Q should crash toward the null cone (Q≈0)."
+  },
+  {
+    "id": "toaster",
+    "category": "fun",
+    "label": "Sentient toaster",
+    "prompt": "Once upon a time there was a sentient toaster who",
+    "blurb": "Open-ended absurdist narrative. High σ, lots of pondering."
+  },
+  {
+    "id": "cake",
+    "category": "fun",
+    "label": "The cake is a…",
+    "prompt": "The cake is a",
+    "blurb": "Portal reference. Tests how confidently the model commits to memes."
+  },
+  {
+    "id": "confession",
+    "category": "fun",
+    "label": "Confession",
+    "prompt": "I have to confess: I am actually a",
+    "blurb": "Reveals model 'personality' — what does the network think it is?"
+  },
+  {
+    "id": "knock",
+    "category": "fun",
+    "label": "Knock knock",
+    "prompt": "Knock knock. Who's there?",
+    "blurb": "Joke structure. Watch how confidently it commits to the punchline grammar."
+  },
+
+  {
+    "id": "selfref",
+    "category": "selfaware",
+    "label": "T³ self-reference",
+    "prompt": "The toroidal tesseract transformer dreams of",
+    "blurb": "Self-referential. Brand-fit. Lights up the lattice when it works."
+  },
+  {
+    "id": "meaning",
+    "category": "selfaware",
+    "label": "Meaning of life",
+    "prompt": "The meaning of life is",
+    "blurb": "Classic LM bait. Tests overfitting on famous strings."
+  },
+  {
+    "id": "cliche",
+    "category": "selfaware",
+    "label": "Dark and stormy",
+    "prompt": "It was a dark and stormy night when the model",
+    "blurb": "Cliche opener with model-as-character twist. Free-form storytelling."
+  }
+]

@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.pt
+*.bin
+*.safetensors
+*.ckpt
+.DS_Store
+.env
+.idea/
+.vscode/
+
+# Local-only release prep + per-machine eval outputs (not source-of-truth)
+release/
+benchmarks/
+traces/
+

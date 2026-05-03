@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "t3-reference"
+version = "0.1.0"
+description = "Inference-time reference implementation of T³, a Clifford-algebra-augmented transformer architecture."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Garret Sutherland", email = "gman1911.gs@gmail.com" },
+]
+requires-python = ">=3.10"
+keywords = [
+    "transformer",
+    "interpretability",
+    "geometric-algebra",
+    "clifford-algebra",
+    "adaptive-computation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+    "safetensors>=0.4",
+    "huggingface-hub>=0.20",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "ruff>=0.4",
+]
+
+[project.urls]
+Homepage = "https://t3atlas.dev"
+Repository = "https://github.com/mirrorethic/t3-reference"
+Traces = "https://t3atlas.dev"
+
+[tool.setuptools.packages.find]
+include = ["t3*"]
+exclude = ["tests*", "examples*", "docs*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
