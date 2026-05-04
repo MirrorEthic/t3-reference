@@ -72,7 +72,7 @@ Cosmopedia, Wikipedia). No instruction tuning. Research / interpretability use.
 
 - Trace library: <https://t3atlas.dev>
 - Benchmark dataset: <https://t3atlas.dev/benchmarks>
-- Paper (TMLR, under review): citation pending
+- Paper: citation pending
 
 ## License
 
