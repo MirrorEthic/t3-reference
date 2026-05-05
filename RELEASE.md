@@ -243,11 +243,13 @@ operational ecology details at [`docs/ECOLOGY.md`](docs/ECOLOGY.md)):
 
 | | What | When |
 |---|---|---|
-| 0.2.0 | Public-module split — refactor `t3/_legacy_*.py` into clean `t3.ecology / t3.attention / t3.act / t3.chain` while keeping the load+forward regression test as the safety net. Cosmetic; no behavior change. | When time permits |
-| 0.3.0 | **`mirrorethic/t3-355m-v37`** — Medium-scale retrain with σ-MLP width sweep (sh16/sh32/sh64) and trivectors-on. ~5 days × 3 H100s. The trivectors-on, scale-up data point. | Compute-budget dependent |
+| 0.2.0 | **`mirrorethic/t3-355m-v37`** — Medium-scale retrain with σ-MLP width sweep (sh16/sh32/sh64) and trivectors-on. ~5 days × 3 H100s. The trivectors-on, scale-up data point. | Compute-budget dependent |
 | — | Methodology paper covering training methodology, σ-flow curriculum, the FEP grounding, and full ablation results | In drafting |
-| — | PyPI publication of `t3-reference` once the public-module split lands | After 0.2.0 |
-| — | CI on push (pytest, lm-eval smoke) — currently 12 tests pass locally | Trivial; deferred |
+| — | PyPI publication of `t3-reference` | When repo settles |
+| — | CI on push (pytest, lm-eval smoke) — currently 13 tests pass locally | Trivial; deferred |
+
+The public-module split (`t3.ecology / t3.attention / t3.chain`) and removal
+of the vendored training-script files landed in 0.1.0.
 
 ---
 

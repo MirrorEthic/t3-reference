@@ -298,13 +298,17 @@ come from a v3.7 Medium retrain (deferred follow-up release).
 
 The implementation is in this repo:
 
-- `t3/_legacy_model.py` — vendored from `t3v36/t3v3_model.py`. Contains
-  `HeadState`, `RydbergBlockade`, `CosurvivalTracker`, `RydbergAttention`,
-  `T3v3Layer`, `T3v3Transformer`. (The prefix "Rydberg" is the informal
-  name for the blockade-modulated attention layer; see §4.3 and §9.)
-- `t3/_legacy_chain.py` — vendored from `t3v36/t3v3_chain.py`. Contains
-  `T3v3Stage`, `T3v3Chain`, `OutputEntropyTracker`, ACT halt logic.
-- `t3/model.py` — public `T3Model` wrapper.
+- `t3/ecology.py` — `HeadState` (six primitives, sigma MLP, Cl(3,3) coupling),
+  `Blockade` (1/r^N suppression), `Cosurvival` (head bond graph; frozen at
+  inference).
+- `t3/attention.py` — `EcologyAttention`: standard multi-head attention with
+  σ-modulated temperature, learned ecology key-bias, and blockade suppression
+  on per-head outputs.
+- `t3/chain.py` — `T3Layer`, `T3Stage`, `T3Chain`, `OutputEntropyTracker`.
+  The per-stage adaptive computation time loop lives inside
+  `T3Chain._act_perstage_forward`.
+- `t3/model.py` — public `T3Model` wrapper. Loads checkpoints, exposes
+  `model.chain` for direct chain access.
 - `t3/config.py` — public `T3Config` schema.
-- `t3/tracing.py`, `t3/benchmarks.py` — public APIs for trace generation
-  and lm-eval-harness reproduction.
+- `t3/tracing.py`, `t3/benchmarks.py` — trace generation and
+  lm-eval-harness adapter.

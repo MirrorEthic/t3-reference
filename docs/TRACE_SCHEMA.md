@@ -176,7 +176,7 @@ predictors. One record per generated token (or one total for non-generative).
 
 ### `frame` (one per stage call, remaining lines)
 
-The most-frequent record. Emitted once per `T3v3Stage.forward` call. Within a
+The most-frequent record. Emitted once per `T3Stage.forward` call. Within a
 single chain forward, `n_stages × n_act_calls` frames typically.
 
 ```json
@@ -282,24 +282,22 @@ A trace produced by `export_trace.py` from this commit is v1.
 
 - Capture code: `diagnostic_trace/export_trace.py`
 - Sweep driver: `diagnostic_trace/sweep_traces.sh`
-- Prompt library: `diagnostic_trace/prompts/library.json`
-- Reference viewer: `diagnostic_trace/viewer/`
-- Manifest of the canonical library: `diagnostic_trace/traces/index.json`
+- Capture code: `t3/tracing.py` (`generate_trace`, `TraceRecorder`)
+- Sweep driver: `scripts/sweep_traces.py`
+- Prompt library: `t3/data/prompts.json`
 
-The model code that produces the captured state is in `t3v3_model.py` /
-`t3v3_chain.py` of this checkpoint of the repo. Major buffers cited in this
-schema (with line numbers, current as of writing):
+The model code that produces the captured state is in `t3/ecology.py`,
+`t3/attention.py`, and `t3/chain.py`. Major quantities cited in this schema:
 
 | Quantity | Source |
 |---|---|
-| `_coupling_params` (Ω bivector) | `t3v3_model.py:602` |
-| `_trivector_params` | `t3v3_model.py:619` |
-| `_apply_coupling_rotation` | `t3v3_model.py:687` |
-| `_self_surprise` | `t3v3_model.py:516` |
-| `RydbergBlockade` | `t3v3_model.py:1583–1641` |
-| `CosurvivalTracker` | `t3v3_model.py:1647–1810` |
-| `inter_stage_predictor` | `t3v3_model.py:528–537` |
-| ACT halt logic | `t3v3_chain.py:1347–1497` |
-| Difficulty predictor | `t3v3_chain.py:844–852` |
-| Scratchpad-need predictor | `t3v3_chain.py:857–864` |
-| Dynamic Ω shadow (v3.7+) | `t3v3_chain.py:2104–2209` |
+| `_coupling_params` (Ω bivector) | `t3.ecology.HeadState` |
+| `_trivector_params` | `t3.ecology.HeadState` |
+| `_apply_coupling_rotation` | `t3.ecology.HeadState._apply_coupling_rotation` |
+| `_self_surprise` | `t3.ecology.HeadState._update_self_model` |
+| Blockade (1/r^N) | `t3.ecology.Blockade` |
+| Cosurvival bond graph | `t3.ecology.Cosurvival` |
+| `inter_stage_predictor` | `t3.ecology.HeadState` (registered, inert at inference) |
+| ACT halt logic | `t3.chain.T3Chain._act_perstage_forward` |
+| Difficulty predictor | `t3.chain.T3Chain.difficulty_head` |
+| Scratchpad-need predictor | `t3.chain.T3Chain.scratchpad_need_head` |

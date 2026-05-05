@@ -1,10 +1,4 @@
-"""T3Model — public inference wrapper around the vendored chain.
-
-The clean module split (t3.ecology, t3.attention, t3.act, t3.chain) is in
-progress; until it lands, T3Model delegates to t3._legacy_chain.T3v3Chain so
-that the forward pass is bit-identical to the training-script implementation
-that produced the released checkpoints.
-"""
+"""T3Model — public inference wrapper for the T³ reference architecture."""
 
 from __future__ import annotations
 
@@ -15,50 +9,83 @@ from typing import Any
 import torch
 from torch import nn
 
-from t3._legacy_chain import T3v3Chain, T3v3ChainConfig
+from t3.chain import T3Chain
 from t3.config import T3Config
 
 
-def _build_legacy_config(ckpt_config: dict) -> T3v3ChainConfig:
-    """Project a checkpoint's config dict onto T3v3ChainConfig kwargs."""
-    known = {f.name for f in dataclass_fields(T3v3ChainConfig)}
+def _project_config(ckpt_config: dict) -> T3Config:
+    """Project a checkpoint's config dict onto `T3Config`. Unknown keys are
+    silently dropped — they are training-time hyperparameters that have no
+    architectural meaning."""
+    known = {f.name for f in dataclass_fields(T3Config)}
     kept = {k: v for k, v in ckpt_config.items() if k in known}
-    # `tuple` is the declared type for scratchpad_inject_entropy etc.; pickle may
-    # bring it back as a list.
-    for tup_field in ("scratchpad_inject_entropy",):
+    for tup_field in ("layers_per_stage", "scratchpad_inject_entropy"):
         if tup_field in kept and isinstance(kept[tup_field], list):
             kept[tup_field] = tuple(kept[tup_field])
-    return T3v3ChainConfig(**kept)
+    return T3Config(**kept)
+
+
+def _augment_with_runtime_fields(cfg: T3Config, ckpt_config: dict) -> T3Config:
+    """Attach extra runtime fields the chain consults via `getattr` but which
+    are not architectural parameters (e.g. `eval_live_primitives`,
+    `act_strain_halt`, `act_strain_ema_enabled`). Setting them on the config
+    object preserves the legacy chain's `getattr(cfg, ..., default)` pattern
+    without polluting the public `T3Config` dataclass."""
+    runtime_keys = (
+        "eval_live_primitives",
+        "act_strain_halt",
+        "act_strain_ema_enabled",
+        "act_adaptive_threshold",
+        "act_strain_threshold",
+        "act_strain_temperature",
+        "act_strain_ema_decay",
+        "act_strain_ema_margin",
+        "act_adaptive_margin",
+        "act_adaptive_floor",
+        "act_adaptive_ema_decay",
+        "blockade_radius_auto",
+        "use_qk_norm",
+        "use_post_norms",
+        "use_triton_kernels",
+        "v1_residual_enabled",
+        "v1_residual_gating",
+        "v1_residual_fixed_lambda",
+        "embed_scale",
+        "sigma_hidden",
+        "sigma_hidden_per_stage",
+        "sigma_complement_strength",
+        "cooperative_prediction",
+        "cooperative_prediction_bond_threshold",
+        "eco_key_bias_features",
+        "eco_key_bias_scale",
+        "hamiltonian_max_coupling",
+        "learned_ecology_params",
+        "use_flex_attention",
+        "d_head",
+    )
+    for k in runtime_keys:
+        if k in ckpt_config and not hasattr(cfg, k):
+            object.__setattr__(cfg, k, ckpt_config[k])
+    return cfg
 
 
 def _strip_compile_prefix(state: dict) -> dict:
-    """Remove the `_orig_mod.` prefix that torch.compile inserts into state dicts."""
+    """Remove the `_orig_mod.` prefix that torch.compile inserts."""
     return {k.replace("_orig_mod.", ""): v for k, v in state.items()}
 
 
 class T3Model(nn.Module):
     """Top-level T³ reference model.
 
-    Constructed from a `T3Config` (clean public schema) or loaded directly from
-    a published checkpoint via `T3Model.from_checkpoint`.
-
-    Forward signature (delegates to T3v3Chain):
-        logits, aux = model(input_ids, attention_mask=None, return_dict=True)
+    Built from a `T3Config` or loaded from a published checkpoint via
+    `T3Model.from_checkpoint`. The forward delegates to `T3Chain`, which
+    runs per-stage adaptive computation with the ecology dynamics.
     """
 
-    def __init__(self, config: T3Config | T3v3ChainConfig):
+    def __init__(self, config: T3Config):
         super().__init__()
-        if isinstance(config, T3Config):
-            # Build a legacy config from the public schema.
-            legacy_kwargs = {
-                k: v for k, v in config.to_dict().items()
-                if k in {f.name for f in dataclass_fields(T3v3ChainConfig)}
-            }
-            self._legacy_config = T3v3ChainConfig(**legacy_kwargs)
-        else:
-            self._legacy_config = config
         self.config = config
-        self.chain = T3v3Chain(self._legacy_config)
+        self.chain = T3Chain(config)
 
     def forward(self, input_ids: torch.Tensor, **kwargs: Any):
         return self.chain(input_ids, **kwargs)
@@ -70,16 +97,16 @@ class T3Model(nn.Module):
         map_location: str | torch.device = "cpu",
         strict: bool = False,
     ) -> "T3Model":
-        """Load a published T³ checkpoint into the reference model.
+        """Load a published T³ checkpoint.
 
-        `strict=False` by default because the training-script `model_state` may
-        carry tracker buffers (`_last_ponder_cost`, `_entropy_delta_ema`, etc.)
-        that the reference model registers via different code paths. Missing /
-        unexpected keys are reported on the returned model as `_load_report`.
+        `strict=False` by default because some checkpoints carry training-only
+        tracker buffers (e.g. dynamic-Ω shadows) that the reference model does
+        not register. Missing/unexpected keys are exposed via `_load_report`.
         """
         ckpt = torch.load(str(path), map_location=map_location, weights_only=False)
-        legacy_cfg = _build_legacy_config(ckpt["config"])
-        model = cls(legacy_cfg)
+        cfg = _project_config(ckpt["config"])
+        cfg = _augment_with_runtime_fields(cfg, ckpt["config"])
+        model = cls(cfg)
         state = _strip_compile_prefix(ckpt["model_state"])
         report = model.chain.load_state_dict(state, strict=strict)
         model._load_report = {
@@ -92,5 +119,4 @@ class T3Model(nn.Module):
         return model
 
     def get_load_report(self) -> dict | None:
-        """Return the strict-load diagnostic from the most recent from_checkpoint call."""
         return getattr(self, "_load_report", None)

@@ -25,13 +25,37 @@ pip install t3-reference
 
 ```python
 from t3 import T3Model
+from t3.tracing import generate_trace, load_trace
 from huggingface_hub import hf_hub_download
 
 ckpt = hf_hub_download("mirrorethic/t3-124m-v36", "pytorch_model.bin")
 model = T3Model.from_checkpoint(ckpt)
-out = model.generate("The capital of France is", trace=True)
-# out.text contains the generation; out.trace contains per-stage ecology state
+
+# Forward pass — delegates to T3Chain with per-stage ACT.
+import torch
+ids = torch.tensor([[464, 3139, 286, 4881, 318]])  # "The capital of France is"
+logits = model(ids)
+
+# Trace generation — JSONL conforming to docs/TRACE_SCHEMA.md.
+trace_path = generate_trace(
+    model,
+    prompt="The capital of France is",
+    prompt_id="factual",
+    n_tokens=8,
+    out_path="traces/smoke.jsonl",
+)
+trace = load_trace(trace_path)
+print(f"frames={len(trace['frames'])} chain_states={len(trace['chain_states'])}")
 ```
+
+## Module layout
+
+- `t3.ecology` — `HeadState` (six primitives + Cl(3,3) coupling), `Blockade`, `Cosurvival`
+- `t3.attention` — `EcologyAttention` (σ-modulated MHA + blockade)
+- `t3.chain` — `T3Layer`, `T3Stage`, `T3Chain` (per-stage ACT lives here)
+- `t3.model` — `T3Model` top-level wrapper
+- `t3.tracing` — schema-v1 trace generator + loader
+- `t3.benchmarks` — lm-eval-harness adapter (`T3LM`, `run_benchmark_suite`)
 
 ## Verification
 

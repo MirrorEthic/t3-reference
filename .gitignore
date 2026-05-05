@@ -19,6 +19,11 @@ venv/
 
 # Local-only release prep + per-machine eval outputs (not source-of-truth)
 release/
+release_pcloss/
 benchmarks/
 traces/
+
+# Working scratchpad — port progress notes, harness diffs, side-by-side outputs.
+# Local only; never committed.
+.claude/
 
