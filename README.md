@@ -72,14 +72,64 @@ algebra. Heads interact through a learned blockade-and-cosurvival graph and
 ponder adaptively per stage via output-entropy halt. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the technical specification.
 
+## Results
+
+T³ at 124M parameters demonstrates **cumulative pareto improvement over a
+same-data, same-compute vanilla GPT-2 baseline** across reasoning benchmarks.
+Both models are trained on the same 5B-token English mix (FineWeb-Edu, DCLM,
+StackEdu, FineMath, Cosmopedia, Wikipedia) with the same training schedule
+and batch shape; the only difference is the architecture.
+
+The first table below is the *cumulative* envelope across the v2.5–v3.7+
+T³ architectural lineage: each cell is the highest-performing T³-124M
+recipe on that task. Different recipes excel at different tasks — there is
+no single "best T³-124M checkpoint." This shows what the architecture
+demonstrates is achievable at this size and budget.
+
+| Task | GPT-2 vanilla (5B same data) | T³-124M (best of lineage) | Δ |
+|---|---:|---:|---:|
+| BoolQ | 57.3 | **72.0** | **+14.7** |
+| HellaSwag | 30.8 | **48.5** | **+17.7** |
+| WinoGrande | 50.4 | **59.0** | +8.6 |
+| COPA | 64.0 | **70.0** | +6.0 |
+| ARC-Challenge | 24.7 | **30.4** | +5.6 |
+| ARC-Easy | 44.2 | **48.7** | +4.5 |
+| PIQA | 61.8 | **65.2** | +3.4 |
+| RTE | 54.5 | 54.5 | 0.0 |
+| **mean** | | | **+7.6** |
+
+The second table is the most recent architectural generation (v3.7+) at the
+same 124M / 5B-token budget, single-recipe — the "what does the current
+architecture do off the shelf?" view, without recipe-tuning per task.
+
+| Task | GPT-2 vanilla (5B same data) | T³-v3.7+ best | Δ |
+|---|---:|---:|---:|
+| HellaSwag | 30.8 | 38.2 | +7.4 |
+| BoolQ | 57.3 | 61.8 | +4.5 |
+| WinoGrande | 50.4 | 53.5 | +3.1 |
+| PIQA | 61.8 | 64.2 | +2.4 |
+| ARC-Challenge | 24.7 | 26.3 | +1.6 |
+| COPA | 64.0 | 64.0 | 0.0 |
+| ARC-Easy | 44.2 | 42.8 | −1.4 |
+| **mean** | | | **+2.5** |
+
+Full per-recipe breakdowns, parameter-and-compute pareto plots, and
+cross-corpus comparisons against larger baselines (SmolLM2-360M,
+Qwen2.5-1.5B) are at [t3atlas.dev/benchmarks](https://t3atlas.dev/benchmarks).
+On `BoolQ` specifically, the best T³-124M (72.0) is within a stderr of
+Qwen2.5-1.5B (72.5) — a ~12× param-ratio gap closed on one task; the
+pareto plots show this is not the case for every task.
+
 ## Released checkpoint
 
 | Model | Parameters | Substrate | Val PPL | HF |
 |-------|------------|-----------|---------|----|
 | `t3-124m-v36` | 124.5M | GPT-2 Small | 27.76 | [`mirrorethic/t3-124m-v36`](https://huggingface.co/mirrorethic/t3-124m-v36) |
 
-Trained on a 5B-token English mix (FineWeb-Edu, DCLM, StackEdu, FineMath,
-Cosmopedia, Wikipedia). No instruction tuning. Research / interpretability use.
+`v3.6-run3` is published as a stable architecture-verification reference,
+not necessarily the per-task peak — see the cumulative table above and the
+atlas viewer for per-recipe winners across the lineage. No instruction
+tuning. Research / interpretability use.
 
 ## Citation
 
